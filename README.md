@@ -1,135 +1,96 @@
 # Kid Riddle Hub 🎯
 
-A fun and interactive riddle game designed for kids, built with Node.js and Express. Perfect for family entertainment and educational purposes.
+A fun and interactive web application for kids to enjoy riddles! Built with Node.js, Express, and MongoDB.
 
-## Features 🌟
+## 🌟 Features
 
-- Interactive riddle display with reveal-answer functionality
-- Comprehensive riddle management system (add, delete, browse)
-- AJAX-based pagination for smooth navigation
-- Duplicate riddle detection
+- Random riddle display with animated reveal
+- Riddle management system (add/delete)
+- Import/Export riddles in JSON format
+- Real-time active user counter
+- Total visits tracker
 - Mobile-responsive design
-- Kid-friendly interface with emoji support
-- JSON-based storage for easy deployment
+- MongoDB database integration
 
-## Installation 🚀
+## 🚀 Live Demo
+
+Visit [Kid Riddle Hub](https://kid-riddle-hub.vercel.app/) to see the app in action!
+
+## 🛠️ Tech Stack
+
+- **Frontend**: HTML, CSS, JavaScript
+- **Backend**: Node.js, Express
+- **Database**: MongoDB Atlas
+- **Template Engine**: EJS
+- **Deployment**: Vercel
+- **Version Control**: Git
+
+## 💻 Local Development
 
 1. Clone the repository:
-
-    ```bash
-    git clone https://github.com/yourusername/kid-riddle-hub.git
-    cd kid-riddle-hub
-    ```
+   ```bash
+   git clone https://github.com/TonyCcY/KidRiddleHub.git
+   cd KidRiddleHub
+   ```
 
 2. Install dependencies:
+   ```bash
+   npm install
+   ```
 
-    ```bash
-    npm install
-    ```
+3. Create a `.env` file in the root directory:
+   ```env
+   MONGODB_URI=your_mongodb_connection_string
+   ```
 
-3. Start the server:
+4. Start the development server:
+   ```bash
+   npm start
+   ```
 
-    ```bash
-    node server.js
-    ```
+5. Visit `http://localhost:3000` in your browser
 
-4. Visit http://localhost:3000 in your browser
+## 📁 Project Structure
 
-## Usage 📖
+```
+kid-riddle-hub/
+├── public/
+│   └── styles.css
+├── views/
+│   ├── display.ejs
+│   └── manage.ejs
+├── server.js
+├── package.json
+├── vercel.json
+└── .env
+```
 
-### Playing Riddles
-- Visit the homepage for a random riddle
-- Click "Show Answer" to reveal the solution
-- Click "Get Another Riddle" for a new challenge
-- Navigate to management page via the link at bottom
+## 🎮 Usage
 
-### Managing Riddles
-- Visit /manage to access the admin interface
-- Add new riddles with question and answer fields
-- Browse existing riddles with pagination
-- Delete unwanted riddles with confirmation
-- Automatic duplicate checking prevents repeats
+- **View Riddles**: Visit the home page to see a random riddle
+- **Manage Riddles**: Click "Manage Riddles" to add or delete riddles
+- **Import/Export**: Use the buttons in the manage page to import/export riddles
+- **Show Answer**: Click the button to reveal the riddle's answer
+- **Get Another**: Click "Get Another Riddle" for a new random riddle
 
-## Project Structure 📁
-
-    kid-riddle-hub/
-    ├── public/
-    │   └── styles.css         # Global styles
-    ├── views/
-    │   ├── display.ejs        # Riddle display page
-    │   └── manage.ejs         # Management interface
-    ├── server.js             # Express server setup
-    ├── riddles.json          # Riddle storage
-    ├── package.json          # Project dependencies
-    └── README.md             # Documentation
-
-## Technical Stack 🛠
-
-### Frontend
-- HTML5/CSS3 for structure and styling
-- Vanilla JavaScript for interactivity
-- EJS templating engine
-- Mobile-first responsive design
-
-### Backend
-- Node.js runtime environment
-- Express.js web framework
-- File-based JSON storage
-- RESTful API architecture
-
-## API Endpoints 🔌
-
-- `GET /` - Display random riddle
-- `GET /manage` - Management interface
-- `POST /add-riddle` - Add new riddle
-- `DELETE /delete-riddle/:index` - Remove riddle
-- `GET /api/riddles` - Fetch paginated riddles
-
-## Contributing 🤝
+## 🤝 Contributing
 
 1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+2. Create a new branch
+3. Make your changes
+4. Submit a pull request
 
-## License 📄
+## 📝 License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the ISC License.
 
-## Acknowledgments 🙏
+## 👨‍💻 Author
 
-- Emoji graphics provided by [OpenMoji](https://openmoji.org/)
-- Riddle content curated for kid-friendly entertainment
-- Special thanks to all contributors and users
+Tony Chan
+- GitHub: [@TonyCcY](https://github.com/TonyCcY)
 
-## Contact 📧
+## 🙏 Acknowledgments
 
-Your Name - [@TonyCcY](https://twitter.com/TonyCcY)
-Project Link: [https://github.com/TonyCcY/KidRiddleHub](https://github.com/TonyCcY/KidRiddleHub)
-
-## Deployment 🚀
-
-### Deploy to Vercel
-
-1. Install Vercel CLI:
-    ```bash
-    npm install -g vercel
-    ```
-
-2. Login to Vercel:
-    ```bash
-    vercel login
-    ```
-
-3. Deploy the project:
-    ```bash
-    vercel
-    ```
-
-4. For production deployment:
-    ```bash
-    vercel --prod
-    ```
-
-Note: The project is automatically configured for Vercel deployment through `vercel.json`.
+- MongoDB Atlas for database hosting
+- Vercel for deployment
+- Express.js community
