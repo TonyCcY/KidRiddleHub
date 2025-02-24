@@ -16,23 +16,23 @@ if (!process.env.MONGODB_URI) {
     process.exit(1);
 }
 
-const uri = process.env.MONGODB_URI;
-const client = new MongoClient(uri);
-
-const RIDDLES_PER_PAGE = 10;
-let database;
-let activeUsers = 0;
-const activeUserTimeout = 5 * 60 * 1000; // 5 minutes
-const activeUserSessions = new Map(); // Store user sessions
+// Global connection promise
+let cachedDb = null;
+let cachedClient = null;
 
 async function connectDB() {
+    if (cachedDb) {
+        return cachedDb;
+    }
+
     try {
-        if (!database) {
-            await client.connect();
-            database = client.db('riddleDB');
-            console.log("Connected to MongoDB");
+        if (!cachedClient) {
+            cachedClient = new MongoClient(process.env.MONGODB_URI);
+            await cachedClient.connect();
         }
-        return database;
+        
+        cachedDb = cachedClient.db('riddleDB');
+        return cachedDb;
     } catch (err) {
         console.error("MongoDB connection error:", err);
         throw err;
@@ -41,7 +41,8 @@ async function connectDB() {
 
 async function loadRiddles() {
     try {
-        const collection = database.collection('riddles');
+        const db = await connectDB();
+        const collection = db.collection('riddles');
         return await collection.find({}).toArray();
     } catch (err) {
         console.error('Error reading riddles:', err);
@@ -51,12 +52,13 @@ async function loadRiddles() {
 
 async function saveRiddles(riddles) {
     try {
-        const collection = database.collection('riddles');
+        const db = await connectDB();
+        const collection = db.collection('riddles');
         await collection.deleteMany({});
         await collection.insertMany(riddles);
     } catch (err) {
         console.error('Error saving riddles:', err);
-        throw err;  // Propagate error to handler
+        throw err;
     }
 }
 
@@ -70,7 +72,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 // Add this function to handle user sessions
 async function updateUserStats(sessionId) {
     try {
-        const collection = database.collection('stats');
+        const db = await connectDB();
+        const collection = db.collection('stats');
         
         // Update or create total visits counter
         await collection.updateOne(
@@ -106,17 +109,21 @@ async function updateUserStats(sessionId) {
 
 // Home route - Display mode
 app.get('/', async (req, res) => {
-    await connectDB(); // Ensure connection
-    const sessionId = req.ip;
-    const stats = await updateUserStats(sessionId);
-    const riddles = await loadRiddles();
-    const randomIndex = Math.floor(Math.random() * riddles.length);
-    
-    res.render('display', { 
-        riddle: riddles[randomIndex],
-        activeUsers: stats.activeUsers,
-        totalVisits: stats.totalVisits
-    });
+    try {
+        const sessionId = req.ip;
+        const stats = await updateUserStats(sessionId);
+        const riddles = await loadRiddles();
+        const randomIndex = Math.floor(Math.random() * riddles.length);
+        
+        res.render('display', { 
+            riddle: riddles[randomIndex],
+            activeUsers: stats.activeUsers,
+            totalVisits: stats.totalVisits
+        });
+    } catch (err) {
+        console.error('Error in home route:', err);
+        res.status(500).send('Internal Server Error');
+    }
 });
 
 // Manage mode route
@@ -282,17 +289,12 @@ app.get('/api/riddle/random', async (req, res) => {
     }
 });
 
-// For Vercel serverless deployment
-if (process.env.VERCEL) {
-    module.exports = app;
-} else {
-    // Connect to MongoDB when starting the server locally
-    connectDB().then(() => {
-        app.listen(port, () => {
-            console.log(`Riddle app listening at http://localhost:${port}`);
-        });
-    }).catch(err => {
-        console.error('Failed to start server:', err);
-        process.exit(1);
+// Export for Vercel
+module.exports = app;
+
+// Start server only in development
+if (!process.env.VERCEL) {
+    app.listen(port, () => {
+        console.log(`Riddle app listening at http://localhost:${port}`);
     });
 }
