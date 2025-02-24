@@ -107,3 +107,29 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 Your Name - [@TonyCcY](https://twitter.com/TonyCcY)
 Project Link: [https://github.com/TonyCcY/KidRiddleHub](https://github.com/TonyCcY/KidRiddleHub)
+
+## Deployment 🚀
+
+### Deploy to Vercel
+
+1. Install Vercel CLI:
+    ```bash
+    npm install -g vercel
+    ```
+
+2. Login to Vercel:
+    ```bash
+    vercel login
+    ```
+
+3. Deploy the project:
+    ```bash
+    vercel
+    ```
+
+4. For production deployment:
+    ```bash
+    vercel --prod
+    ```
+
+Note: The project is automatically configured for Vercel deployment through `vercel.json`.

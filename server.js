@@ -2,7 +2,7 @@ const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000;
 
 // Path to the JSON file
 const riddlesFile = path.join(__dirname, 'riddles.json');
@@ -13,7 +13,7 @@ const RIDDLES_PER_PAGE = 10; // Number of riddles to show per page
 
 function loadRiddles() {
     try {
-        const data = fs.readFileSync('riddles.json', 'utf8');
+        const data = fs.readFileSync(riddlesFile, 'utf8');
         return JSON.parse(data);
     } catch (err) {
         console.error('Error reading riddles:', err);
@@ -23,7 +23,7 @@ function loadRiddles() {
 
 function saveRiddles(riddles) {
     try {
-        fs.writeFileSync('riddles.json', JSON.stringify(riddles, null, 4));
+        fs.writeFileSync(riddlesFile, JSON.stringify(riddles, null, 4));
     } catch (err) {
         console.error('Error saving riddles:', err);
     }
