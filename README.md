@@ -106,4 +106,4 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ## Contact 📧
 
 Your Name - [@TonyCcY](https://twitter.com/TonyCcY)
-Project Link: [https://github.com/TonyCcY/kid-riddle-hub](https://github.com/TonyCcY/kid-riddle-hub)
+Project Link: [https://github.com/TonyCcY/KidRiddleHub](https://github.com/TonyCcY/KidRiddleHub)
