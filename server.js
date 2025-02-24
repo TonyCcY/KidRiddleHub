@@ -5,7 +5,9 @@ const app = express();
 const port = process.env.PORT || 3000;
 
 // Path to the JSON file
-const riddlesFile = path.join(__dirname, 'riddles.json');
+const riddlesFile = process.env.VERCEL 
+    ? path.join(__dirname, 'public', 'riddles.json')
+    : path.join(__dirname, 'riddles.json');
 
 // Read riddles from JSON file
 let riddles = [];
@@ -17,11 +19,24 @@ function loadRiddles() {
         return JSON.parse(data);
     } catch (err) {
         console.error('Error reading riddles:', err);
-        return [];
+        // Return default riddles if file doesn't exist
+        return [
+            {
+                "question": "What has keys but no locks?",
+                "answer": "A piano!"
+            },
+            // ... add a few more default riddles ...
+        ];
     }
 }
 
 function saveRiddles(riddles) {
+    // In production (Vercel), don't save to file
+    if (process.env.VERCEL) {
+        console.log('Skipping file save in production');
+        return;
+    }
+    
     try {
         fs.writeFileSync(riddlesFile, JSON.stringify(riddles, null, 4));
     } catch (err) {
@@ -31,8 +46,9 @@ function saveRiddles(riddles) {
 
 // Middleware
 app.use(express.urlencoded({ extended: true }));
-app.use(express.static('public'));
+app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Home route - Display mode
 app.get('/', (req, res) => {
