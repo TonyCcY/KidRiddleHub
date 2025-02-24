@@ -17,10 +17,7 @@ if (!process.env.MONGODB_URI) {
 }
 
 const uri = process.env.MONGODB_URI;
-const client = new MongoClient(uri, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-});
+const client = new MongoClient(uri);
 
 const RIDDLES_PER_PAGE = 10;
 let database;
@@ -30,12 +27,15 @@ const activeUserSessions = new Map(); // Store user sessions
 
 async function connectDB() {
     try {
-        await client.connect();
-        database = client.db('riddleDB');
-        console.log("Connected to MongoDB");
+        if (!database) {
+            await client.connect();
+            database = client.db('riddleDB');
+            console.log("Connected to MongoDB");
+        }
+        return database;
     } catch (err) {
         console.error("MongoDB connection error:", err);
-        process.exit(1);  // Exit if can't connect to MongoDB
+        throw err;
     }
 }
 
@@ -106,7 +106,8 @@ async function updateUserStats(sessionId) {
 
 // Home route - Display mode
 app.get('/', async (req, res) => {
-    const sessionId = req.ip; // Use IP as session ID (or implement proper sessions)
+    await connectDB(); // Ensure connection
+    const sessionId = req.ip;
     const stats = await updateUserStats(sessionId);
     const riddles = await loadRiddles();
     const randomIndex = Math.floor(Math.random() * riddles.length);
@@ -281,12 +282,17 @@ app.get('/api/riddle/random', async (req, res) => {
     }
 });
 
-// Connect to MongoDB when starting the server
-connectDB().then(() => {
-    app.listen(port, () => {
-        console.log(`Riddle app listening at http://localhost:${port}`);
+// For Vercel serverless deployment
+if (process.env.VERCEL) {
+    module.exports = app;
+} else {
+    // Connect to MongoDB when starting the server locally
+    connectDB().then(() => {
+        app.listen(port, () => {
+            console.log(`Riddle app listening at http://localhost:${port}`);
+        });
+    }).catch(err => {
+        console.error('Failed to start server:', err);
+        process.exit(1);
     });
-}).catch(err => {
-    console.error('Failed to start server:', err);
-    process.exit(1);
-});
+}
