@@ -289,11 +289,11 @@ app.get('/api/riddle/random', async (req, res) => {
     }
 });
 
-// Export for Vercel
+// Export the app for Vercel
 module.exports = app;
 
-// Start server only in development
-if (!process.env.VERCEL) {
+// Only start the server in development
+if (process.env.NODE_ENV !== 'production') {
     app.listen(port, () => {
         console.log(`Riddle app listening at http://localhost:${port}`);
     });
