@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Manage Fun Riddles!</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+    <div class="page-container">
+        <h1>📝 Manage Your Riddles 📝</h1>
+        
+        <% if (typeof message !== 'undefined' && message) { %>
+            <div class="message">
+                <%= message %>
+            </div>
+        <% } %>
+        
+        <form action="/add-riddle" method="POST">
+            <h2>✨ Add New Riddle ✨</h2>
+            <div class="form-group">
+                <label>Question:</label>
+                <input type="text" name="question" required placeholder="Type your riddle question here...">
+            </div>
+            <div class="form-group">
+                <label>Answer:</label>
+                <input type="text" name="answer" required placeholder="Type the answer here...">
+            </div>
+            <div class="form-buttons">
+                <button type="submit">➕ Add Riddle</button>
+            </div>
+        </form>
+
+        <h2>🎯 Current Riddles 🎯</h2>
+        <ul class="riddle-list" id="riddleList">
+            <% riddles.forEach((riddle, index) => { %>
+                <li>
+                    <div class="riddle-content">
+                        <strong>Q: <%= riddle.question %></strong>
+                        <br>
+                        <em>A: <%= riddle.answer %></em>
+                    </div>
+                    <button onclick="deleteRiddle(<%= index %>)" class="delete-button">❌ Delete</button>
+                </li>
+            <% }) %>
+        </ul>
+
+        <div class="pagination">
+            <button onclick="changePage(currentPage - 1)" 
+                    class="page-button" id="prevButton">
+                ⬅️ Previous
+            </button>
+            
+            <span class="page-info" id="pageInfo">Page <%= currentPage %> of <%= totalPages %></span>
+            
+            <button onclick="changePage(currentPage + 1)" 
+                    class="page-button" id="nextButton">
+                Next ➡️
+            </button>
+        </div>
+        
+        <div class="navigation">
+            <a href="/">🏠 Back to Riddle Time</a>
+        </div>
+    </div>
+
+    <script>
+        let currentPage = <%= currentPage %>;
+        let totalPages = <%= totalPages %>;
+
+        function updatePaginationButtons() {
+            document.getElementById('prevButton').classList.toggle('active', currentPage > 1);
+            document.getElementById('nextButton').classList.toggle('active', currentPage < totalPages);
+            document.getElementById('pageInfo').textContent = `Page ${currentPage} of ${totalPages}`;
+        }
+
+        function renderRiddles(riddles) {
+            const riddleList = document.getElementById('riddleList');
+            let html = riddles.map((riddle, index) => `
+                <li>
+                    <div class="riddle-content">
+                        <strong>Q: ${riddle.question}</strong>
+                        <br>
+                        <em>A: ${riddle.answer}</em>
+                    </div>
+                    <button onclick="deleteRiddle(${index})" class="delete-button">❌ Delete</button>
+                </li>
+            `).join('');
+
+            // Add placeholders if needed
+            const placeholdersNeeded = <%= RIDDLES_PER_PAGE %> - riddles.length;
+            if (placeholdersNeeded > 0) {
+                for (let i = 0; i < placeholdersNeeded; i++) {
+                    html += `
+                        <li class="placeholder">
+                            <div class="riddle-content">
+                                <strong>Empty slot</strong>
+                            </div>
+                        </li>
+                    `;
+                }
+            }
+            
+            riddleList.innerHTML = html;
+        }
+
+        async function changePage(newPage) {
+            if (newPage < 1 || newPage > totalPages) return;
+            
+            try {
+                const response = await fetch(`/api/riddles?page=${newPage}`);
+                const data = await response.json();
+                
+                currentPage = data.currentPage;
+                totalPages = data.totalPages;
+                renderRiddles(data.riddles);
+                updatePaginationButtons();
+                
+                // Update URL without page reload
+                history.pushState({}, '', `/manage?page=${currentPage}`);
+            } catch (error) {
+                console.error('Error fetching riddles:', error);
+            }
+        }
+
+        function deleteRiddle(index) {
+            const confirmDelete = confirm('Are you sure you want to delete this riddle?');
+            if (confirmDelete) {
+                fetch(`/delete-riddle/${index}?page=${currentPage}`, {
+                    method: 'DELETE'
+                }).then(() => {
+                    changePage(currentPage); // Refresh current page
+                });
+            }
+        }
+
+        // Auto-hide message after 3 seconds
+        const message = document.querySelector('.message');
+        if (message) {
+            setTimeout(() => {
+                message.style.opacity = '0';
+                setTimeout(() => message.remove(), 500);
+            }, 3000);
+        }
+
+        // Initialize pagination buttons
+        updatePaginationButtons();
+    </script>
+</body>
+</html>

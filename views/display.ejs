@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Fun Riddles for Kids!</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+    <div class="page-container">
+        <h1>🎯 Riddle Time! 🎯</h1>
+        
+        <div class="riddle-container">
+            <p class="riddle-text"><%= riddle.question %></p>
+            <p class="answer-text" id="answer"><%= riddle.answer %></p>
+            <div style="text-align: center;">
+                <button id="actionButton" onclick="handleButtonClick()">Show Answer</button>
+            </div>
+        </div>
+
+        <div class="navigation">
+            <a href="/">🎲 Get Another Riddle</a> | <a href="/manage">📝 Manage Riddles</a>
+        </div>
+    </div>
+
+    <script>
+        function handleButtonClick() {
+            const answerElement = document.getElementById('answer');
+            const button = document.getElementById('actionButton');
+            
+            if (answerElement.style.visibility === 'hidden' || !answerElement.style.visibility) {
+                answerElement.style.visibility = 'visible';
+                button.innerHTML = 'Get Another Riddle';
+                button.onclick = function() {
+                    window.location.href = '/';
+                };
+            }
+        }
+    </script>
+</body>
+</html>
