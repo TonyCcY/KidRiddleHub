@@ -10,29 +10,25 @@ if (process.env.NODE_ENV !== 'production') {
 const app = express();
 const port = process.env.PORT || 3000;
 
+// Add RIDDLES_PER_PAGE constant
+const RIDDLES_PER_PAGE = 10; // Number of riddles to show per page
+
 // Check if MongoDB URI exists
 if (!process.env.MONGODB_URI) {
     console.error('MongoDB URI is not defined');
     process.exit(1);
 }
 
-// Global connection promise
-let cachedDb = null;
-let cachedClient = null;
+// Add these variables at the top of the file, after the port definition
+const activeUserSessions = new Map();
+const activeUserTimeout = 5 * 60 * 1000; // 5 minutes in milliseconds
+let activeUsers = 0;
 
 async function connectDB() {
-    if (cachedDb) {
-        return cachedDb;
-    }
-
     try {
-        if (!cachedClient) {
-            cachedClient = new MongoClient(process.env.MONGODB_URI);
-            await cachedClient.connect();
-        }
-        
-        cachedDb = cachedClient.db('riddleDB');
-        return cachedDb;
+        const client = new MongoClient(process.env.MONGODB_URI);
+        await client.connect();
+        return client.db('riddleDB');
     } catch (err) {
         console.error("MongoDB connection error:", err);
         throw err;
@@ -65,11 +61,12 @@ async function saveRiddles(riddles) {
 // Middleware
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-app.set('views', path.join(__dirname, 'views'));
+console.log(path.join(__dirname, '../views'));
+app.set('views', path.join(__dirname, '../views'));
 app.set('view engine', 'ejs');
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, '../public')));
 
-// Add this function to handle user sessions
+// Fix the updateUserStats function
 async function updateUserStats(sessionId) {
     try {
         const db = await connectDB();
@@ -86,20 +83,21 @@ async function updateUserStats(sessionId) {
         const now = Date.now();
         activeUserSessions.set(sessionId, now);
 
-        // Clean up old sessions
+        // Clean up old sessions (older than 5 minutes)
         for (const [sid, timestamp] of activeUserSessions) {
             if (now - timestamp > activeUserTimeout) {
                 activeUserSessions.delete(sid);
             }
         }
 
+        // Update active users count
         activeUsers = activeUserSessions.size;
 
         // Get total visits
         const stats = await collection.findOne({ _id: 'visits' });
         return {
             activeUsers,
-            totalVisits: stats.count
+            totalVisits: stats ? stats.count : 0
         };
     } catch (err) {
         console.error('Error updating user stats:', err);
@@ -189,51 +187,42 @@ app.get('/api/riddles', async (req, res) => {
     });
 });
 
-// Add this function to initialize the database with riddles
-async function initializeDatabase() {
-    try {
-        if (process.env.VERCEL && database) {
-            const collection = database.collection('riddles');
-            const count = await collection.countDocuments();
+// Fix the initializeDatabase function
+// async function initializeDatabase() {
+//     try {
+//         if (process.env.VERCEL) {
+//             const db = await connectDB();
+//             const collection = db.collection('riddles');
+//             const count = await collection.countDocuments();
             
-            // Only initialize if the collection is empty
-            if (count === 0) {
-                // Read riddles from the JSON file
-                const data = fs.readFileSync(path.join(__dirname, 'riddles.json'), 'utf8');
-                const riddles = JSON.parse(data);
+//             // Only initialize if the collection is empty
+//             if (count === 0) {
+//                 // Read riddles from the JSON file
+//                 const data = fs.readFileSync(path.join(__dirname, 'riddles.json'), 'utf8');
+//                 const riddles = JSON.parse(data);
                 
-                // Insert riddles into MongoDB
-                await collection.insertMany(riddles);
-                console.log('Database initialized with riddles');
-            }
-        }
-    } catch (err) {
-        console.error('Error initializing database:', err);
-    }
-}
+//                 // Insert riddles into MongoDB
+//                 await collection.insertMany(riddles);
+//                 console.log('Database initialized with riddles');
+//             }
+//         }
+//     } catch (err) {
+//         console.error('Error initializing database:', err);
+//     }
+// }
 
-// Add this debug route to check MongoDB contents
+// Fix the debug route
 app.get('/debug/riddles', async (req, res) => {
     try {
-        if (database) {
-            const collection = database.collection('riddles');
-            const count = await collection.countDocuments();
-            const riddles = await collection.find({}).toArray();
-            res.json({
-                source: 'MongoDB',
-                count: count,
-                riddles: riddles
-            });
-        } else {
-            // Fallback to file system
-            const data = fs.readFileSync(riddlesFile, 'utf8');
-            const riddles = JSON.parse(data);
-            res.json({
-                source: 'File System',
-                count: riddles.length,
-                riddles: riddles
-            });
-        }
+        const db = await connectDB();
+        const collection = db.collection('riddles');
+        const count = await collection.countDocuments();
+        const riddles = await collection.find({}).toArray();
+        res.json({
+            source: 'MongoDB',
+            count: count,
+            riddles: riddles
+        });
     } catch (err) {
         res.json({
             error: err.message,
