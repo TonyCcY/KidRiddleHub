@@ -2,7 +2,12 @@
   "name": "kidriddlehub",
   "version": "1.0.0",
   "main": "src/server.js",
+  "engines": {
+    "node": "18.x"
+  },
   "scripts": {
+    "dev": "node src/server.js",
+    "build": "npm install",
     "start": "node src/server.js"
   },
   "keywords": [],
